@@ -1,0 +1,7 @@
+<meta>
+	<info author="Lula Crackudo" type="script" name="startResources" />
+	<script src="server.lua" type="server" />
+	<aclrequest>
+		<right name="function.startResource" access="true"/>
+	</aclrequest>
+</meta>
