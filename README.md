@@ -10,7 +10,7 @@ print(DevelopedBy.dev.." © "..DevelopedBy.year)
 ##  Setup:
 ###### 1. Into your server console, command the following:
 
-`aclrequest startResources allow`
+`aclrequest startResources allow all`
    
        Obs.: This will give the resource the required permission for resource starting. 
 
