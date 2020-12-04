@@ -18,7 +18,7 @@ function preStart ()
     end 
 end
 
-addEventHandler ( "onResourceStart", getResourceRootElement(getThisResource()), preStart)
+addEventHandler ( "onResourceStart", resourceRoot, preStart)
 
 --------------------------------------------------------------------------------------------------------------------------------------------
 --- START MODS
