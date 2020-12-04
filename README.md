@@ -1,12 +1,5 @@
 # startResources 
-~~~lua
-local DevelopedBy =  {
-  ["dev"] = "Lula Crackudo",
-  ["year"] = math.floor((44.9444101085^2)),
-}
 
-print(DevelopedBy.dev.." © "..DevelopedBy.year)
-~~~
 ##  Setup:
 ###### 1. Into your server console, command the following:
 
