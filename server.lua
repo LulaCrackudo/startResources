@@ -6,26 +6,16 @@
 --------------------------------------------------------------------------------------------------------------------------------------------
 
 function preStart ()
-    if not fileExists("database.db") then  -- check if the 'database.db' file actually exists before doing anything
-        local newFile = fileCreate("database.db")  -- if it doesn't, creates a new file named 'database.db'
-        if newFile then
-            outputDebugString("["..getResourceName(getThisResource()).."] Arquivo database.db criado com sucesso.")
-            fileClose(newFile) 
+    database = dbConnect( "sqlite", "database.db"  )
+    if database then 
+        local exec = dbExec(database, "CREATE TABLE IF NOT EXISTS `resources` (resourceName TEXT)")
+        if not exec then
+            error("dbConnect["..getResourceName(getThisResource()).."] Ocorreu um erro.")
+            return
         end
-        local newDB = dbConnect( "sqlite", "database.db" ) -- connects to the new database
-        if newDB then 
-            outputDebugString("["..getResourceName(getThisResource()).."] Conexão com a nova database bem sucedida.")
-        else 
-            outputDebugString("["..getResourceName(getThisResource()).."] Erro conectando à nova database.")
-        end
-        local populate = dbExec(newDB, "CREATE TABLE `resources` (resourceName TEXT)") -- create the table in the new database
-        if (newDB) and (populate) then
-            outputDebugString("["..getResourceName(getThisResource()).."] Base de dados populada corretamente.")
-            destroyElement(newDB)
-        end   
-    end
-    database = dbConnect( "sqlite", "database.db" ) -- if a database already existed, it just connects and executes initResources
-    initResources()
+        print("dbConnect["..getResourceName(getThisResource()).."] Database conectada corretamente.")
+        initResources()
+    end 
 end
 
 addEventHandler ( "onResourceStart", getResourceRootElement(getThisResource()), preStart)
@@ -39,9 +29,6 @@ function initResources()
         outputDebugString("Erro: o mod "..getResourceName(getThisResource()).." não tem as permissões necessárias para funcionar corretamente \nDigite no F8: aclrequest allow "..getResourceName(getThisResource()).." all", 1)
         return
     end
-    if not database then
-        outputDebugString("dbConnect["..getResourceName(getThisResource()).."]: falha ao estabelecer conexão com a base de dados.", 1)
-    else
     local query = dbQuery(database, "SELECT * FROM `resources`") 
     local result = dbPoll(query, -1)
         for _, row in ipairs (result) do -- row represents the tables that are in 'result', which represent the rows
@@ -54,27 +41,46 @@ function initResources()
             end
         end
     outputDebugString("["..getResourceName(getThisResource()).."]:Resources iniciados corretamente.")
-    end
 end
+
 
 --------------------------------------------------------------------------------------------------------------------------------------------
 --- SAVE MODS
 --------------------------------------------------------------------------------------------------------------------------------------------
 
 addCommandHandler("save", function ()
+    _call(saveMods)
+end) 
+
+function saveMods ()
     local resources = getResources() -- get all loaded resources from the server
     dbExec(database, "DELETE FROM `resources`") -- clear the table in the database, to avoid resource duplication and debugscript spam;
     for _, resourceValue in ipairs (resources) do 
         local resourceName = getResourceName(resourceValue) 
-        if (getResourceState(resourceValue) == "running")  -- get all the running resources
+        if (getResourceState(resourceValue) == "running") then -- get all the running resources
             if resourceName ~= getResourceName(getThisResource()) then
                 dbExec(database, "INSERT INTO `resources` VALUES (?)", resourceName)  -- save the resource names in the database
-                outputDebugString("Status do resource ["..resourceName.."] salvo!")
+                print("Status do resource ["..resourceName.."] salvo!")
             end
-        end  
+        end 
+        sleep(200)
     end 
-    outputDebugString("Backup de resources feito com sucesso!")
+    print("Backup de resources feito com sucesso!")
 end 
-)
+
 
 --------------------------------------------------------------------------------------------------------------------------------------------
+
+function _call(_called, ...)
+	local co = coroutine.create(_called);
+	coroutine.resume(co, ...);
+end
+
+function sleep(time)
+	local co = coroutine.running();
+	local function resumeThisCoroutine()
+		coroutine.resume(co);
+	end
+	setTimer(resumeThisCoroutine, time, 1);
+	coroutine.yield();
+end
